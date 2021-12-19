@@ -6,7 +6,7 @@
   },
   "type": "module",
   "description": "[![Actions Status](https://github.com/vvnezapnopwnz/backend-project-lvl3/workflows/hexlet-check/badge.svg)](https://github.com/vvnezapnopwnz/backend-project-lvl3/actions)",
-  "main": "index.js",
+  "main": "bin/page-loader.js",
   "scripts": {
     "test": "npx jest ."
   },
@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/vvnezapnopwnz/backend-project-lvl3.git"
   },
-  "author": "",
+  "author": "vvnezapnopwnz",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/vvnezapnopwnz/backend-project-lvl3/issues"
