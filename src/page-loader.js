@@ -3,7 +3,6 @@ import { promises as fs } from 'fs';
 import axios from 'axios';
 import cheerio from 'cheerio';
 import debug from 'debug';
-import 'axios-debug-log';
 import Listr from 'listr';
 
 const log = debug('page-loader');
