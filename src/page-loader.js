@@ -4,7 +4,7 @@ import axios from 'axios';
 import cheerio from 'cheerio';
 import debug from 'debug';
 import 'axios-debug-log';
-// import Listr from 'listr';
+import Listr from 'listr';
 
 const log = debug('page-loader');
 
@@ -49,27 +49,40 @@ export default (url, output = process.cwd()) => {
     .then(() => fs.writeFile(`${outputPath}/${address.hostname.replace(/[/.]/g, '-')}${address.pathname.length > 1 ? address.pathname.replace(/[/.]/g, '-') : ''}.html`, $.html()))
     .then(() => fs.mkdir(outputFilesPath, { recursive: true }))
     .then(() => {
-      const promises = [];
-      downloadLinks.forEach((el) => promises.push(axios.get(`${address.href.slice(0, address.href.length - 1)}${el}`, { responseType: 'text' })
-        .then((response) => fs.writeFile(`${outputPath}/${makeDirNameFromLink(address)}/${address.hostname.replace(/[/.]/g, '-')}${el
-          .replace(/[^\w.]/g, '-')}${el.includes('.') ? '' : '.html'}`, response.data))));
+      const data = downloadLinks.map((el) => ({
+        title: `${address.href.slice(0, -1)}${el}`,
+        task: () => axios.get(`${address.href.slice(0, address.href.length - 1)}${el}`, { responseType: 'text' })
+          .then((response) => fs.writeFile(`${outputPath}/${makeDirNameFromLink(address)}/${address.hostname.replace(/[/.]/g, '-')}${el
+            .replace(/[^\w.]/g, '-')}`, response.data)),
 
-      return Promise.all(promises);
+      }));
+
+      const tasks = new Listr(data, { concurrent: true, exitOnError: false });
+      return tasks.run();
     })
     .then(() => {
-      const promises = [];
-      downloadScripts.forEach((el) => promises.push(axios.get(`${address.href.slice(0, address.href.length - 1)}${el}`, { responseType: 'text' })
-        .then((response) => fs.writeFile(`${outputPath}/${makeDirNameFromLink(address)}/${address.hostname.replace(/[/.]/g, '-')}${el
-          .replace(/[^\w.]/g, '-')}`, response.data))));
-      return Promise.all(promises);
+      const data = downloadScripts.map((el) => ({
+        title: `${address.href.slice(0, -1)}${el}`,
+        task: () => axios.get(`${address.href.slice(0, address.href.length - 1)}${el}`, { responseType: 'text' })
+          .then((response) => fs.writeFile(`${outputPath}/${makeDirNameFromLink(address)}/${address.hostname.replace(/[/.]/g, '-')}${el
+            .replace(/[^\w.]/g, '-')}`, response.data)),
+
+      }));
+
+      const tasks = new Listr(data, { concurrent: true, exitOnError: false });
+      return tasks.run();
     })
     .then(() => {
-      const promises = [];
-      downloadImgs.forEach((el) => promises.push(axios.get(`${address.href.slice(0, address.href.length - 1)}${el}`, { responseType: 'arraybuffer' })
-        .then((response) => fs.writeFile(`${outputPath}/${makeDirNameFromLink(address)}/${address.hostname.replace(/[/.]/g, '-')}${el
-          .replace(/[^\w.]/g, '-')}`, response.data))));
+      const data = downloadImgs.map((el) => ({
+        title: `${address.href.slice(0, -1)}${el}`,
+        task: () => axios.get(`${address.href.slice(0, address.href.length - 1)}${el}`, { responseType: 'text' })
+          .then((response) => fs.writeFile(`${outputPath}/${makeDirNameFromLink(address)}/${address.hostname.replace(/[/.]/g, '-')}${el
+            .replace(/[^\w.]/g, '-')}`, response.data)),
 
-      return Promise.all(promises);
+      }));
+
+      const tasks = new Listr(data, { concurrent: true, exitOnError: false });
+      return tasks.run();
     });
 
   return loadPage;

@@ -10,5 +10,11 @@ program
   .version('0.0.1', '-V, --version', 'output the version number')
   .option('-o, --output [dir]', 'output dir', process.cwd())
   .arguments('url')
-  .action((url, options) => pageLoader(url, options.output))
-  .parse(process.argv);
+  .action((url, options) => pageLoader(url, options.output)
+    .then(() => console.log(`Page was successfully downloaded into ${options.output}/${url.split('//')[1].replace(/[/.]/g, '-').slice(0, -1)}.html`))
+    .catch((e) => {
+      console.error(e.message);
+      process.exit(1);
+    }));
+
+program.parse(process.argv);
