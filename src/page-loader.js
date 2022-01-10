@@ -35,6 +35,9 @@ export default (requestedUrl, outputDir) => {
 
   return axios.get(url.href)
     .then((response) => {
+
+
+//waa
       const $ = cheerio.load(response.data, { decodeEntities: false });
       tags.forEach(({ tag, tagAttribute }) => {
         const elements = $(tag).toArray();
@@ -59,9 +62,15 @@ export default (requestedUrl, outputDir) => {
       });
       changedHtml = $.html();
       return fs.mkdir(assetDirectoryPath, { recursive: true });
+    
+    
+
+    
     })
     .then(() => fs.writeFile(htmlFilePath, changedHtml, 'utf-8'))
     .then(() => {
+
+//downloads
       const data = links.map(({ assetName, assetUrl }) => ({
         title: `${assetUrl}`,
         task: () => axios.get(assetUrl.href, { responseType: 'arraybuffer' })
@@ -75,6 +84,10 @@ export default (requestedUrl, outputDir) => {
       }));
       const tasks = new Listr(data, { concurrent: true, exitOnError: false });
       return tasks.run();
+    
+    
+    
+    
     })
     .then(() => {
       log(`HtmlFileName: ${htmlFileName}`);
