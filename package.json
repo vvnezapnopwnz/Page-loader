@@ -6,7 +6,7 @@
   },
   "type": "module",
   "description": "[![Actions Status](https://github.com/vvnezapnopwnz/backend-project-lvl3/workflows/hexlet-check/badge.svg)](https://github.com/vvnezapnopwnz/backend-project-lvl3/actions)",
-  "main": "bin/page-loader.js",
+  "main": "src/page-loader.js",
   "scripts": {
     "test": "npx jest"
   },
