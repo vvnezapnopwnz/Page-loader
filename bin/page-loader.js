@@ -11,9 +11,9 @@ program
   .option('-o, --output [dir]', 'output dir', process.cwd())
   .arguments('url')
   .action((url, options) => pageLoader(url, options.output)
-    .then(() => console.log(`Page was successfully downloaded into ${options.output}/${url.split('//')[1].replace(/[/.]/g, '-').slice(0, -1)}.html`))
-    .catch((e) => {
-      console.error(e.message);
+    .then((htmlFolder) => console.log(`Page was successfully downloaded into ${options.output}/${htmlFolder}`))
+    .catch((err) => {
+      console.error(err);
       process.exit(1);
     }));
 

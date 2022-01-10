@@ -26,8 +26,13 @@
     "cheerio": "^1.0.0-rc.10",
     "commander": "^8.2.0",
     "debug": "^4.3.3",
+    "fs": "^0.0.1-security",
     "listr": "^0.14.3",
-    "nock": "^13.2.1"
+    "lodash": "^4.17.21",
+    "nock": "^13.2.1",
+    "os": "^0.1.2",
+    "path": "^0.12.7",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "@jest/globals": "^27.2.0",

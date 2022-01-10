@@ -1,59 +1,87 @@
-/**
- * @jest-environment node
- */
-import fs from 'fs/promises';
-import os from 'os';
-import { fileURLToPath } from 'url';
-import path, { dirname } from 'path';
+import path from 'path';
 import nock from 'nock';
-import pageLoader from '../src/page-loader.js';
-
-nock.disableNetConnect();
+import { fileURLToPath } from 'url';
+import { promises as fsp } from 'fs';
+import os from 'os';
+import pageLoader from '../src/page-loader';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
+
+const resourceDirName = 'ru-hexlet-io-courses_files';
 const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
+const readFile = (filePath) => fsp.readFile(filePath, 'utf-8');
 
-let tempDir;
-let assetsJS;
-let assetsCSS;
-let assetsImg;
-let html;
-let assetsLink;
+const inputURL = 'https://ru.hexlet.io/courses';
+const pageURL = new URL(inputURL);
+let tmpDir;
+nock.disableNetConnect();
+const scope = nock(pageURL.origin).persist();
+const expectedPath = getFixturePath('ru-hexlet-io-courses.html');
 
-beforeAll(async () => {
-  assetsJS = await fs.readFile(getFixturePath('assets/script.js'), 'utf-8');
-  assetsCSS = await fs.readFile(getFixturePath('assets/assets-application.css'), 'utf-8');
-  assetsImg = await fs.readFile(getFixturePath('assets/assets-professions-nodejs.png'));
-  html = await fs.readFile(getFixturePath('page-loader-hexlet-repl-co.html'), 'utf-8');
-  assetsLink = await fs.readFile(getFixturePath('assets/courses.html'));
-  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader'));
+const resourcePaths = [
+  ['/assets/professions/nodejs.png', path.join(resourceDirName, 'ru-hexlet-io-assets-professions-nodejs.png')],
+  ['/courses', path.join(resourceDirName, 'ru-hexlet-io-courses.html')],
+  ['/assets/application.css', path.join(resourceDirName, 'ru-hexlet-io-assets-application.css')],
+  ['/packs/js/runtime.js', path.join(resourceDirName, 'ru-hexlet-io-packs-js-runtime.js')],
+];
+
+beforeAll(() => {
+  resourcePaths.forEach(([pathName, fileName]) => scope
+    .get(pathName).replyWithFile(200, getFixturePath(fileName)));
 });
 
-test('page loader', async () => {
-  nock('https://page-loader.hexlet.repl.co/')
-    .get('/')
-    .reply(200, html)
-    .get('/script.js')
-    .reply(200, assetsJS)
-    .get('/assets/application.css')
-    .reply(200, assetsCSS)
-    .get('/assets/professions/nodejs.png')
-    .reply(200, assetsImg)
-    .get('/courses')
-    .reply(200, assetsLink);
-  const url = 'https://page-loader.hexlet.repl.co/';
-  await pageLoader(url, tempDir);
-  const actualHtml = await fs.readFile(path.join(tempDir, 'page-loader-hexlet-repl-co.html'), 'utf-8');
-  const actualJS = await fs.readFile(path.join(tempDir, 'page-loader-hexlet-repl-co_files', 'page-loader-hexlet-repl-co-script.js'), 'utf-8');
-  const actualCSS = await fs.readFile(path.join(tempDir, 'page-loader-hexlet-repl-co_files', 'page-loader-hexlet-repl-co-assets-application.css'), 'utf-8');
-  const actualImg = await fs.readFile(path.join(tempDir, 'page-loader-hexlet-repl-co_files', 'page-loader-hexlet-repl-co-assets-professions-nodejs.png'));
-  expect(actualHtml).toBe(html);
-  expect(actualJS).toBe(assetsJS);
-  expect(actualCSS).toBe(assetsCSS);
-  expect(actualImg).toEqual(assetsImg);
+beforeEach(async () => {
+  tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
 });
 
-afterEach(async () => {
-  fs.rmdir(tempDir, { recursive: true });
+describe('tests without errors', () => {
+  test('response: positive', async () => {
+    await pageLoader(inputURL, tmpDir);
+    expect(scope.isDone()).toBe(true);
+  });
+
+  test('downloaded succesfully', async () => {
+    const modifiedContent = await readFile(expectedPath);
+    const savedPath = path.join(tmpDir, 'ru-hexlet-io-courses.html');
+
+    await pageLoader(inputURL, tmpDir);
+
+    expect(await readFile(savedPath)).toBe(modifiedContent);
+  });
+
+  test.each(resourcePaths)('saved succesfully', async (sourceUrl, sourcePath) => {
+    await pageLoader(inputURL, tmpDir);
+
+    const savedPath = path.join(tmpDir, sourcePath);
+    const fixturePath = getFixturePath(sourcePath);
+    const existingContent = await readFile(fixturePath);
+    const savedContent = await readFile(savedPath);
+
+    expect(savedContent).toBe(existingContent);
+  });
+});
+
+describe.each([
+  404,
+  502,
+  504,
+])('network errors', (error) => {
+  test(`Get ${error} code error`, async () => {
+    const errorUrl = `${pageURL.origin}/${error}`;
+    await expect(pageLoader(errorUrl, tmpDir))
+      .rejects
+      .toThrow(`${pageURL.origin}`);
+  });
+});
+
+describe.each([
+  [(path.join('/var', 'lib')), 'permission denied'],
+  [expectedPath, 'not a directory'],
+])('Output errors', (outputPath, errorText) => {
+  test(`Founded errors: "${errorText}"`, async () => {
+    await expect(pageLoader(inputURL, outputPath))
+      .rejects
+      .toThrow(errorText);
+  });
 });
