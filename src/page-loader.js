@@ -1,11 +1,13 @@
 import path from 'path';
-// import debug from 'debug';
-// import 'axios-debug-log';
+import debug from 'debug';
+import 'axios-debug-log';
 import fs from 'fs/promises';
 import axios from 'axios';
 import cheerio from 'cheerio';
 import Listr from 'listr';
 import _ from 'lodash';
+
+const log = debug('page-loader');
 
 const makeNameFromLink = ({ host, pathname }) => {
   const newHost = host.replace(/[.]/g, '-');
@@ -64,6 +66,7 @@ export default (requestedUrl, outputDir) => {
         title: `${assetUrl}`,
         task: () => axios.get(assetUrl.href, { responseType: 'arraybuffer' })
           .then(({ data: response }) => {
+            log(`Asset loading  ${assetName}`);
             const assetLoadingPath = path.join(assetDirectoryPath, assetName);
 
             return fs.writeFile(assetLoadingPath, response);
@@ -73,5 +76,9 @@ export default (requestedUrl, outputDir) => {
       const tasks = new Listr(data, { concurrent: true, exitOnError: false });
       return tasks.run();
     })
-    .then(() => htmlFileName);
+    .then(() => {
+      log(`HtmlFileName: ${htmlFileName}`);
+
+      return htmlFileName;
+    });
 };
