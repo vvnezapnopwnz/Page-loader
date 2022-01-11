@@ -8,9 +8,9 @@ Page-loader command line utility that downloads a page from the network
 
 ### Usage
 ```
-make install // install depencies
+make install // install dependencies
 npm link // run command in project directory to install page-loader
-page-lodaer -h // help info about usage of page-loader
+page-loader -h // help info about usage of page-loader
 ```
 **Example of utility usage is presented below.**
 
