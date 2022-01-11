@@ -18,7 +18,7 @@ const makeNameFromLink = ({ host, pathname }) => {
 const makeAssetDirectoryName = (url) => `${makeNameFromLink(url)}_files`;
 const makeHtmlName = (url) => `${makeNameFromLink(url)}.html`;
 
-export default (requestedUrl, outputDir) => {
+export default (requestedUrl, outputDir = process.cwd()) => {
   const url = new URL(requestedUrl);
   const htmlFileName = makeHtmlName(url);
   const htmlFilePath = path.resolve(outputDir, htmlFileName);
@@ -35,9 +35,7 @@ export default (requestedUrl, outputDir) => {
 
   return axios.get(url.href)
     .then((response) => {
-
-
-//waa
+      // waa
       const $ = cheerio.load(response.data, { decodeEntities: false });
       tags.forEach(({ tag, tagAttribute }) => {
         const elements = $(tag).toArray();
@@ -62,15 +60,10 @@ export default (requestedUrl, outputDir) => {
       });
       changedHtml = $.html();
       return fs.mkdir(assetDirectoryPath);
-    
-    
-
-    
     })
     .then(() => fs.writeFile(htmlFilePath, changedHtml, 'utf-8'))
     .then(() => {
-
-//downloads
+      // downloads
       const data = links.map(({ assetName, assetUrl }) => ({
         title: `${assetUrl}`,
         task: () => axios.get(assetUrl.href, { responseType: 'arraybuffer' })
@@ -84,10 +77,6 @@ export default (requestedUrl, outputDir) => {
       }));
       const tasks = new Listr(data, { concurrent: true, exitOnError: false });
       return tasks.run();
-    
-    
-    
-    
     })
     .then(() => {
       log(`HtmlFileName: ${htmlFileName}`);
