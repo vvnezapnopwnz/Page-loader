@@ -61,7 +61,7 @@ export default (requestedUrl, outputDir) => {
           });
       });
       changedHtml = $.html();
-      return fs.mkdir(assetDirectoryPath, { recursive: true });
+      return fs.mkdir(assetDirectoryPath);
     
     
 
