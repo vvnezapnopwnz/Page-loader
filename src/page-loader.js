@@ -35,7 +35,6 @@ export default (requestedUrl, outputDir = process.cwd()) => {
 
   return axios.get(url.href)
     .then((response) => {
-      // waa
       const $ = cheerio.load(response.data, { decodeEntities: false });
       tags.forEach(({ tag, tagAttribute }) => {
         const elements = $(tag).toArray();
@@ -63,7 +62,6 @@ export default (requestedUrl, outputDir = process.cwd()) => {
     })
     .then(() => fs.writeFile(htmlFilePath, changedHtml, 'utf-8'))
     .then(() => {
-      // downloads
       const data = links.map(({ assetName, assetUrl }) => ({
         title: `${assetUrl}`,
         task: () => axios.get(assetUrl.href, { responseType: 'arraybuffer' })
