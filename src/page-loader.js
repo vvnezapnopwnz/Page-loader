@@ -58,7 +58,7 @@ export default (requestedUrl, outputDir = process.cwd()) => {
           });
       });
       changedHtml = $.html();
-      return fs.mkdir(assetDirectoryPath);
+      return fs.mkdir(assetDirectoryPath, { recursive: true });
     })
     .then(() => fs.writeFile(htmlFilePath, changedHtml, 'utf-8'))
     .then(() => {
