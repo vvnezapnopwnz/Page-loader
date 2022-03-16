@@ -38,20 +38,15 @@ export default (requestedUrl, outputDir = process.cwd()) => {
       const $ = cheerio.load(response.data, { decodeEntities: false });
       tags.forEach(({ tag, tagAttribute }) => {
         const elements = $(tag).toArray();
-        elements.map((elem) => {
-          const assetUrl = new URL($(elem).attr(tagAttribute), url.href);
-          return { elem, assetUrl };
-        })
-          .filter(({ assetUrl }) => assetUrl.host === url.host)
-          .forEach(({
-            elem, assetUrl,
-          }) => {
+        elements
+          .forEach((elem) => {
+            const assetUrl = new URL($(elem).attr(tagAttribute), url.href);
             let assetName = makeNameFromLink(assetUrl);
-            if (!assetName.split('.')[1]) {
+            if (!assetName.split('.')[1] && assetUrl.host === url.host) {
               $(elem).attr(tagAttribute, path.join(assetDirectoryName, `${assetName}.html`));
               assetName += '.html';
               links.push({ assetName, assetUrl });
-            } else {
+            } else if (assetUrl.host === url.host) {
               $(elem).attr(tagAttribute, path.join(assetDirectoryName, assetName));
               links.push({ assetName, assetUrl });
             }
