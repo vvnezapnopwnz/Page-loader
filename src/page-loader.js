@@ -42,12 +42,13 @@ export default (requestedUrl, outputDir = process.cwd()) => {
           .forEach((elem) => {
             const assetUrl = new URL($(elem).attr(tagAttribute), url.href);
             let assetName = makeNameFromLink(assetUrl);
-            if (!assetName.split('.')[1] && assetUrl.host === url.host) {
-              $(elem).attr(tagAttribute, path.join(assetDirectoryName, `${assetName}.html`));
-              assetName += '.html';
-              links.push({ assetName, assetUrl });
-            } else if (assetUrl.host === url.host) {
-              $(elem).attr(tagAttribute, path.join(assetDirectoryName, assetName));
+            if (assetUrl.host === url.host) {
+              if (!assetName.split('.')[1]) {
+                assetName += '.html';
+                $(elem).attr(tagAttribute, path.join(assetDirectoryName, `${assetName}`));
+              } else {
+                $(elem).attr(tagAttribute, path.join(assetDirectoryName, assetName));
+              }
               links.push({ assetName, assetUrl });
             }
           });
